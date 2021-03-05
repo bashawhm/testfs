@@ -10,8 +10,6 @@
 #include <errno.h>
 
 static int tfs_getattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi) {
-	(void) fi;
-
 	fprintf(stderr, "GETATTR-ING\n");
 
 	if(strcmp(path, "/") != 0)
@@ -29,9 +27,6 @@ static int tfs_getattr(const char *path, struct stat *stbuf, struct fuse_file_in
 }
 
 static int tfs_truncate(const char *path, off_t size, struct fuse_file_info *fi) {
-	(void) size;
-	(void) fi;
-
 	fprintf(stderr, "TRUNCATING\n");
 
 	if(strcmp(path, "/") != 0)
@@ -41,8 +36,6 @@ static int tfs_truncate(const char *path, off_t size, struct fuse_file_info *fi)
 }
 
 static int tfs_open(const char *path, struct fuse_file_info *fi) {
-	(void) fi;
-
 	fprintf(stderr, "OPENING\n");
 
 	if(strcmp(path, "/") != 0)
@@ -55,10 +48,6 @@ char *file_buffer = NULL;
 long int buff_size = 0;
 
 static int tfs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
-	(void) buf;
-	(void) offset;
-	(void) fi;
-
 	long int copy_len = size;
 	long int copy_offset = offset;
 
@@ -83,10 +72,6 @@ static int tfs_read(const char *path, char *buf, size_t size, off_t offset, stru
 }
 
 static int tfs_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
-	(void) buf;
-	(void) offset;
-	(void) fi;
-
 	fprintf(stderr, "WRITING\n");
 
 	file_buffer = (char*)realloc(file_buffer, size);
