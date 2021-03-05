@@ -9,12 +9,10 @@
 #include <time.h>
 #include <errno.h>
 
-static int tfs_getattr(const char *path, struct stat *stbuf,
-			struct fuse_file_info *fi)
-{
+static int tfs_getattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi) {
 	(void) fi;
 
-    fprintf(stderr, "GETATTR-ING\n");
+	fprintf(stderr, "GETATTR-ING\n");
 
 	if(strcmp(path, "/") != 0)
 		return -ENOENT;
@@ -30,13 +28,11 @@ static int tfs_getattr(const char *path, struct stat *stbuf,
 	return 0;
 }
 
-static int tfs_truncate(const char *path, off_t size,
-			 struct fuse_file_info *fi)
-{
+static int tfs_truncate(const char *path, off_t size, struct fuse_file_info *fi) {
 	(void) size;
 	(void) fi;
 
-    fprintf(stderr, "TRUNCATING\n");
+	fprintf(stderr, "TRUNCATING\n");
 
 	if(strcmp(path, "/") != 0)
 		return -ENOENT;
@@ -44,11 +40,10 @@ static int tfs_truncate(const char *path, off_t size,
 	return 0;
 }
 
-static int tfs_open(const char *path, struct fuse_file_info *fi)
-{
+static int tfs_open(const char *path, struct fuse_file_info *fi) {
 	(void) fi;
 
-    fprintf(stderr, "OPENING\n");
+	fprintf(stderr, "OPENING\n");
 
 	if(strcmp(path, "/") != 0)
 		return -ENOENT;
@@ -59,26 +54,24 @@ static int tfs_open(const char *path, struct fuse_file_info *fi)
 char *file_buffer = NULL;
 long int buff_size = 0;
 
-static int tfs_read(const char *path, char *buf, size_t size,
-		     off_t offset, struct fuse_file_info *fi)
-{
+static int tfs_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
 	(void) buf;
 	(void) offset;
 	(void) fi;
 
-    long int copy_len = size;
-    long int copy_offset = offset;
+	long int copy_len = size;
+	long int copy_offset = offset;
 
-    fprintf(stderr, "READING\n");
+	fprintf(stderr, "READING\n");
 
-    if (size > buff_size) {
-        copy_len = buff_size;
-    }
-    if (offset > buff_size) {
-        return 0;
-    }
+	if (size > buff_size) {
+		copy_len = buff_size;
+	}
+	if (offset > buff_size) {
+		return 0;
+	}
 
-    memcpy(buf, file_buffer + offset, copy_len);
+	memcpy(buf, file_buffer + offset, copy_len);
 
 	if(strcmp(path, "/") != 0)
 		return -ENOENT;
@@ -89,18 +82,16 @@ static int tfs_read(const char *path, char *buf, size_t size,
 	return size;
 }
 
-static int tfs_write(const char *path, const char *buf, size_t size,
-		      off_t offset, struct fuse_file_info *fi)
-{
+static int tfs_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
 	(void) buf;
 	(void) offset;
 	(void) fi;
 
-    fprintf(stderr, "WRITING\n");
+	fprintf(stderr, "WRITING\n");
 
-    file_buffer = (char*)realloc(file_buffer, size);
-    buff_size = size;
-    memcpy(file_buffer, buf, size);
+	file_buffer = (char*)realloc(file_buffer, size);
+	buff_size = size;
+	memcpy(file_buffer, buf, size);
 
 	if(strcmp(path, "/") != 0)
 		return -ENOENT;
@@ -137,13 +128,14 @@ int main(int argc, char *argv[])
 		free(opts.mountpoint);
 		return 1;
 	}
-	free(opts.mountpoint);
+
 	if (!S_ISREG(stbuf.st_mode)) {
 		fprintf(stderr, "mountpoint is not a regular file\n");
 		return 1;
 	}
 
-    printf("Mounting at point: %s\n", opts.mountpoint);
+	printf("Mounting at point: %s\n", opts.mountpoint);
+	free(opts.mountpoint);
 
 	return fuse_main(argc, argv, &tfs_oper, NULL);
 }
