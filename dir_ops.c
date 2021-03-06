@@ -3,15 +3,26 @@
 #include <fuse.h>
 #include <fuse_lowlevel.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
 
 #include "dir_ops.h"
 #include "fs.h"
 
 int internal_readdir(FileSystem *fs, const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi, enum fuse_readdir_flags flags) {
+    fprintf(stderr, "READDIR %s\n", path);
+
+    TFSDir *d = fi->fh;
+
+    filler(buf, ".", NULL, 0, 0);
+    filler(buf, "..", NULL, 0, 0);
     for (int i = 0; i < fs->num_files; i++) {
         struct stat st;
         memset(&st, 0, sizeof(st));
+        st.st_mode = S_IFREG | 0644;
         if (filler(buf, fs->files[i].file_name, &st, 0, FUSE_FILL_DIR_PLUS)) {
+            fprintf(stderr, "Error filling file %s\n", fs->files[i].file_name);
             break;
         }
     }
@@ -19,3 +30,14 @@ int internal_readdir(FileSystem *fs, const char *path, void *buf, fuse_fill_dir_
     return 0;
 }
 
+int internal_opendir(FileSystem *fs, const char *path, struct fuse_file_info *fi) {
+    fprintf(stderr, "OPENDIR %s\n", path);
+
+    TFSDir *d = (TFSDir *)malloc(sizeof(TFSDir));
+
+    d->offset = 0;
+    d->ent = NULL;
+
+    fi->fh = (unsigned long) d;
+    return 0;
+}
