@@ -20,6 +20,21 @@ int internal_truncate(FileSystem *fs, const char *path, off_t size, struct fuse_
 	return 0;
 }
 
+int internal_create(FileSystem *fs, const char *path, mode_t mode, struct fuse_file_info *fi) {
+	fprintf(stderr, "CREATING %s\n", path);
+    fs->num_files++;
+
+    File *file = (File*)malloc(sizeof(File));
+    file->file_name = strdup(path);
+    file->file_buffer = NULL;
+    file->buff_size = 0;
+
+    fs->files = (File*)realloc(fs->files, (fs->num_files)*sizeof(File));
+    fs->files[fs->num_files-1] = *file;
+
+    return 0;
+}
+
 int internal_open(FileSystem *fs, const char *path, struct fuse_file_info *fi) {
 	fprintf(stderr, "OPENING %s\n", path);
 
@@ -27,14 +42,23 @@ int internal_open(FileSystem *fs, const char *path, struct fuse_file_info *fi) {
         return 0;
     }
 
+
+    if (fi->flags & O_CREAT) {
+        fprintf(stderr, "REQUESTING FILE CREAT\n");
+    }
+
     for (int i = 0; i < fs->num_files; i++) {
         if (strncmp(fs->files[i].file_name, path, strlen(fs->files[i].file_name)) == 0) {
-            return i+1;
+            //return i+1;
+            return 0;
         }
     }
 
-//    return 0;
-    return -ENOENT;
+//    fprintf(stderr, "REDIRECTING OPEN TO CREATE: %s\n", path);
+//    internal_create(fs, path, 0, fi);
+
+    return 0;
+//    return -ENOENT;
 }             
 
 int internal_read(FileSystem *fs, const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
@@ -54,6 +78,10 @@ int internal_read(FileSystem *fs, const char *path, char *buf, size_t size, off_
         	if (offset > fs->files[i].buff_size) {
         		return 0;
         	}
+            if (copy_len == 0) {
+                //fprintf(stderr, "attempting to read zero length file: %s\n", path);
+                return 0;
+            }
             memcpy(buf, fs->files[i].file_buffer + copy_offset, copy_len);
 	        return copy_len;
         }
@@ -82,9 +110,3 @@ int internal_mknod(FileSystem *fs, const char *path, mode_t mode, dev_t rdev) {
     return 0;
 }
 
-int internal_create(FileSystem *fs, const char *path, mode_t mode, struct fuse_file_info *fi) {
-	fprintf(stderr, "CREATING %s\n", path);
-    
-
-    return 0;
-}
